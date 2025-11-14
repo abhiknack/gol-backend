@@ -1,0 +1,22 @@
+server:
+  port: "8080"
+  read_timeout: "10s"
+  write_timeout: "10s"
+  request_timeout: "30s"
+  bearer_tokens:
+    - "your-secret-token-here"
+    - "another-token-for-testing"
+
+supabase:
+  url: "https://your-project.supabase.co"
+  api_key: "your-api-key-here"
+
+redis:
+  host: "localhost"
+  port: "6379"
+  password: ""
+  db: 0
+  ttl: "300s"
+
+logging:
+  level: "info"

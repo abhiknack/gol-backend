@@ -1,0 +1,174 @@
+version: '3.8'
+
+# Development Environment Configuration
+# Usage: docker-compose -f docker-compose.dev.yml up -d
+
+services:
+  # Go application service (Development with hot reload)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gol-bazaar-app-dev
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      # Server configuration
+      - SERVER_PORT=8080
+      - SERVER_READ_TIMEOUT=${SERVER_READ_TIMEOUT:-10s}
+      - SERVER_WRITE_TIMEOUT=${SERVER_WRITE_TIMEOUT:-10s}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30s}
+      
+      # Supabase configuration
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      
+      # Redis configuration
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_TTL=${REDIS_TTL:-300s}
+      
+      # PostgreSQL configuration
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/middleware_db?sslmode=disable
+      
+      # Logging configuration (verbose for development)
+      - LOG_LEVEL=debug
+      - GIN_MODE=debug
+    volumes:
+      # Mount source code for hot reload
+      - .:/app:cached
+      # Exclude tmp directory (Air build artifacts)
+      - /app/tmp
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL service with PostGIS (Development)
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: gol-bazaar-postgres-dev
+    ports:
+      - "5432:5432"  # Exposed for local development tools
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-middleware_db}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+      - ./grocery_superapp_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./migrations:/migrations:ro  # Mount migrations folder
+      - ./scripts/init-sample-data.sql:/docker-entrypoint-initdb.d/02-sample-data.sql:ro  # Sample data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-middleware_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=2621kB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+
+  # Redis service (Development)
+  redis:
+    image: redis:7-alpine
+    container_name: gol-bazaar-redis-dev
+    ports:
+      - "6379:6379"  # Exposed for local development tools
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --loglevel debug
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # pgAdmin (Development only - Database management UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gol-bazaar-pgadmin-dev
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@golbazaar.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    volumes:
+      - pgadmin-data-dev:/var/lib/pgadmin
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # Redis Commander (Development only - Redis management UI)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: gol-bazaar-redis-commander-dev
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+networks:
+  app-network:
+    driver: bridge
+    name: gol-bazaar-dev-network
+
+volumes:
+  postgres-data-dev:
+    driver: local
+    name: gol-bazaar-postgres-dev-data
+  redis-data-dev:
+    driver: local
+    name: gol-bazaar-redis-dev-data
+  pgadmin-data-dev:
+    driver: local
+    name: gol-bazaar-pgadmin-dev-data

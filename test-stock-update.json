@@ -1,0 +1,16 @@
+{
+  "store_id": "EXT123456",
+  "products": [
+    {
+      "id": "UUID-PROD-1",
+      "stock_quantity": 120,
+      "is_available": true,
+      "price": 455
+    },
+    {
+      "id": "UUID-PROD-2",
+      "stock_quantity": 0,
+      "is_available": false
+    }
+  ]
+}

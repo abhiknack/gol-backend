@@ -1,0 +1,148 @@
+{
+  "store_details": {
+    "store_id": "STORE-001",
+    "name": "Mumbai Central Store",
+    "address": {
+      "line1": "123 Main Street",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "postal_code": "400001"
+    },
+    "location": {
+      "lat": 19.0760,
+      "lng": 72.8777
+    }
+  },
+  "categories": [
+    {
+      "id": "CAT-BEVERAGES",
+      "parent_id": null,
+      "name": "Beverages",
+      "slug": "beverages",
+      "description": "Soft drinks and beverages",
+      "display_order": 1,
+      "is_active": true
+    },
+    {
+      "id": "CAT-SOFT-DRINKS",
+      "parent_id": "CAT-BEVERAGES",
+      "name": "Soft Drinks",
+      "slug": "soft-drinks",
+      "description": "Carbonated soft drinks",
+      "display_order": 1,
+      "is_active": true
+    }
+  ],
+  "taxes": [
+    {
+      "id": "GST-18",
+      "name": "GST 18%",
+      "tax_id": "GST18",
+      "description": "Goods and Services Tax 18%",
+      "rate": 18.00,
+      "tax_type": "percentage",
+      "is_inclusive": false,
+      "is_active": true
+    },
+    {
+      "id": "GST-5",
+      "name": "GST 5%",
+      "tax_id": "GST5",
+      "description": "Goods and Services Tax 5%",
+      "rate": 5.00,
+      "tax_type": "percentage",
+      "is_inclusive": false,
+      "is_active": true
+    }
+  ],
+  "products": [
+    {
+      "id": "ZOHO-1001",
+      "sku": "CK1L01",
+      "name": "Coca Cola 1L",
+      "slug": "coca-cola-1l",
+      "description": "Coca Cola Soft Drink 1 Litre",
+      "category_id": "CAT-SOFT-DRINKS",
+      "price": 50.00,
+      "currency": "INR",
+      "unit": "liter",
+      "unit_quantity": 1.0,
+      "primary_image_url": "https://example.com/images/coke-1l.jpg",
+      "images": [
+        "https://example.com/images/coke-1l-front.jpg",
+        "https://example.com/images/coke-1l-back.jpg"
+      ],
+      "brand": "Coca Cola",
+      "manufacturer": "Coca-Cola Company",
+      "barcode": "8901234567890",
+      "ean": "8901234567890",
+      "is_active": true,
+      "is_featured": true,
+      "is_customizable": false,
+      "is_addon": false
+    },
+    {
+      "id": "ZOHO-1002",
+      "sku": "PP2L01",
+      "name": "Pepsi 2L",
+      "slug": "pepsi-2l",
+      "description": "Pepsi Soft Drink 2 Litre",
+      "category_id": "CAT-SOFT-DRINKS",
+      "price": 90.00,
+      "currency": "INR",
+      "unit": "liter",
+      "unit_quantity": 2.0,
+      "primary_image_url": "https://example.com/images/pepsi-2l.jpg",
+      "images": [
+        "https://example.com/images/pepsi-2l-front.jpg"
+      ],
+      "brand": "Pepsi",
+      "manufacturer": "PepsiCo",
+      "barcode": "8901234567891",
+      "ean": "8901234567891",
+      "is_active": true,
+      "is_featured": false,
+      "is_customizable": false,
+      "is_addon": false
+    }
+  ],
+  "variations": [
+    {
+      "product_id": "ZOHO-1001",
+      "name": "Small",
+      "display_name": "250ml",
+      "price": 20.00,
+      "is_default": false
+    },
+    {
+      "product_id": "ZOHO-1001",
+      "name": "Medium",
+      "display_name": "500ml",
+      "price": 35.00,
+      "is_default": false
+    },
+    {
+      "product_id": "ZOHO-1001",
+      "name": "Large",
+      "display_name": "1L",
+      "price": 50.00,
+      "is_default": true
+    }
+  ],
+  "store_products": [
+    {
+      "product_id": "ZOHO-1001",
+      "price": 50.00,
+      "stock_quantity": 100,
+      "is_in_stock": true,
+      "taxes": ["GST-18"]
+    },
+    {
+      "product_id": "ZOHO-1002",
+      "price": 90.00,
+      "stock_quantity": 50,
+      "is_in_stock": true,
+      "taxes": ["GST-5"]
+    }
+  ]
+}

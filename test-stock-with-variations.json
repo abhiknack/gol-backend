@@ -1,0 +1,24 @@
+{
+  "store_id": "EXT123456",
+  "products": [
+    {
+      "id": "ID-PROD-1",
+      "stock_quantity": 120,
+      "is_available": true,
+      "variants": [
+        {
+          "id": "ID-VAR-5KG",
+          "stock_quantity": 80,
+          "is_available": true,
+          "price": 455
+        },
+        {
+          "id": "ID-VAR-1KG",
+          "stock_quantity": 40,
+          "is_available": true,
+          "price": 110
+        }
+      ]
+    }
+  ]
+}

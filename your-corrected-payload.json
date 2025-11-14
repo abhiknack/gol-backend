@@ -1,0 +1,100 @@
+{
+  "store_details": {
+    "store_id": "EXT123456",
+    "name": "Main Supermarket",
+    "address": {
+      "line1": "Main Road",
+      "city": "Mumbai",
+      "state": "MH",
+      "postal_code": "400001"
+    },
+    "location": {
+      "lat": 19.076,
+      "lng": 72.8777
+    }
+  },
+  "categories": [
+    {
+      "id": "UUID-CAT-GROCERY",
+      "parent_id": null,
+      "name": "Grocery",
+      "slug": "grocery",
+      "description": "General grocery items",
+      "display_order": 1,
+      "is_active": true
+    },
+    {
+      "id": "UUID-CAT-RICE",
+      "parent_id": "UUID-CAT-GROCERY",
+      "name": "Rice & Grains",
+      "slug": "rice-and-grains",
+      "description": "Rice, dals, grains",
+      "display_order": 2,
+      "is_active": true
+    }
+  ],
+  "taxes": [
+    {
+      "id": "UUID-GST-5",
+      "name": "GST 5%",
+      "tax_id": "GST_5",
+      "description": "Standard GST for grocery",
+      "rate": 5.0,
+      "tax_type": "percentage",
+      "is_inclusive": false,
+      "is_active": true
+    }
+  ],
+  "products": [
+    {
+      "id": "UUID-PROD-1",
+      "sku": "RICE-FORTUNE-5KG",
+      "name": "Fortune Basmati Rice 5kg",
+      "slug": "fortune-basmati-rice-5kg",
+      "description": "Premium basmati rice.",
+      "category_id": "UUID-CAT-RICE",
+      "price": 455,
+      "currency": "INR",
+      "unit": "kg",
+      "unit_quantity": 5,
+      "primary_image_url": "https://cdn.example.com/rice.png",
+      "images": [
+        "https://cdn.example.com/rice_1.png",
+        "https://cdn.example.com/rice_2.png"
+      ],
+      "brand": "Fortune",
+      "manufacturer": "Adani Wilmar",
+      "barcode": "1234567890123",
+      "ean": "8901234567890",
+      "is_active": true,
+      "is_featured": false,
+      "is_customizable": false,
+      "is_addon": false
+    }
+  ],
+  "variations": [
+    {
+      "product_id": "UUID-PROD-1",
+      "name": "5kg",
+      "display_name": "5 kg Pack",
+      "price": 455,
+      "is_default": true
+    },
+    {
+      "product_id": "UUID-PROD-1",
+      "name": "1kg",
+      "display_name": "1 kg Pack",
+      "price": 110,
+      "is_default": false
+    }
+  ],
+  "store_products": [
+    {
+      "product_id": "UUID-PROD-1",
+      "price": 455,
+      "stock_quantity": 120,
+      "is_in_stock": true,
+      "taxes": ["UUID-GST-5"]
+    }
+  ]
+}
