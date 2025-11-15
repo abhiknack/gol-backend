@@ -1,0 +1,158 @@
+version: '3.8'
+
+# Low Memory Configuration for 1 GB RAM instances (OCI E2.1.Micro)
+# Optimized for VM.Standard.E2.1.Micro (1 OCPU, 1 GB RAM)
+# Usage: docker-compose -f docker-compose.lowmem.yml up -d
+
+services:
+  # Go application service (Memory Optimized)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gol-backend-app
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      # Server configuration
+      - SERVER_PORT=8080
+      - SERVER_READ_TIMEOUT=${SERVER_READ_TIMEOUT:-10s}
+      - SERVER_WRITE_TIMEOUT=${SERVER_WRITE_TIMEOUT:-10s}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30s}
+      
+      # Supabase configuration
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_API_KEY=${SUPABASE_API_KEY}
+      
+      # Redis configuration
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DB=${REDIS_DB:-0}
+      - REDIS_TTL=${REDIS_TTL:-300s}
+      
+      # Logging configuration
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - GIN_MODE=release
+    mem_limit: 200m
+    mem_reservation: 128m
+    cpus: 0.5
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 2
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # Redis service (Memory Optimized)
+  redis:
+    image: redis:7-alpine
+    container_name: gol-backend-redis
+    ports:
+      - "6379:6379"
+    command:
+      - sh
+      - -c
+      - |
+        redis-server \
+        $${REDIS_PASSWORD:+--requirepass $$REDIS_PASSWORD} \
+        --maxmemory 64mb \
+        --maxmemory-policy allkeys-lru \
+        --save "" \
+        --appendonly no \
+        --tcp-backlog 128 \
+        --timeout 300 \
+        --tcp-keepalive 60 \
+        --maxclients 100 \
+        --loglevel warning
+    mem_limit: 96m
+    mem_reservation: 64m
+    cpus: 0.25
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 2
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+        max-file: "1"
+
+  # PostgreSQL service (Memory Optimized)
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: gol-backend-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-middleware_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./grocery_superapp_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    mem_limit: 384m
+    mem_reservation: 256m
+    cpus: 0.5
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: >
+      postgres
+      -c max_connections=50
+      -c shared_buffers=64MB
+      -c effective_cache_size=192MB
+      -c maintenance_work_mem=16MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=2MB
+      -c default_statistics_target=50
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=100
+      -c work_mem=2MB
+      -c min_wal_size=512MB
+      -c max_wal_size=1GB
+      -c max_worker_processes=2
+      -c max_parallel_workers_per_gather=1
+      -c max_parallel_workers=2
+      -c log_min_duration_statement=2000
+      -c log_line_prefix='%t [%p]: '
+      -c fsync=on
+      -c synchronous_commit=on
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+
